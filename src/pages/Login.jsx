@@ -26,9 +26,6 @@ export function Login() {
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: 'var(--accent)', letterSpacing: '-0.02em' }}>
           todolog
         </h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: 'var(--space-2)', fontSize: 'var(--text-base)' }}>
-          일정을 카테고리로 정리하세요
-        </p>
       </div>
 
       <button
