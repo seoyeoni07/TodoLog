@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { addMonths, subMonths, format, parseISO, addWeeks, subWeeks, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, LogOut, Tag, Check, Settings, MoreHorizontal, Plus } from 'lucide-react'
@@ -213,6 +213,14 @@ export function Calendar() {
   const [openPanel, setOpenPanel] = useState(null)
   const [editingBio, setEditingBio] = useState(false)
   const [bioVal, setBioVal] = useState('')
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 700)
+  const [mobileTab, setMobileTab] = useState('feed')
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 700)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
   const accentInputRef = useRef()
   const catColorInputRef = useRef()
   const [newCatName, setNewCatName] = useState('')
@@ -568,15 +576,15 @@ export function Calendar() {
       </header>
 
       {/* ── App body ── */}
-      <div style={{ flex: 1, maxWidth: 960, width: '100%', margin: '0 auto', display: 'flex', overflow: 'hidden', height: 'calc(100vh - 48px)' }}>
+      <div style={{ flex: 1, maxWidth: isMobile ? '100%' : 960, width: '100%', margin: '0 auto', display: 'flex', overflow: 'hidden', height: `calc(100vh - ${isMobile ? 96 : 48}px)` }}>
 
         {/* ── Left panel ── */}
         <aside style={{
-          width: 400,
+          width: isMobile ? '100%' : 400,
           flexShrink: 0,
-          borderRight: '1px solid var(--border-base)',
+          borderRight: isMobile ? 'none' : '1px solid var(--border-base)',
           background: 'var(--bg-base)',
-          display: 'flex',
+          display: !isMobile || mobileTab === 'calendar' ? 'flex' : 'none',
           flexDirection: 'column',
           overflowY: 'auto',
           padding: '20px 16px 24px',
@@ -644,7 +652,7 @@ export function Calendar() {
             todos={visibleTodos}
             categories={categories}
             selectedDate={selectedDate}
-            onDateSelect={d => { setSelectedDate(d); setSelectedTodo(null) }}
+            onDateSelect={d => { setSelectedDate(d); setSelectedTodo(null); if (isMobile) setMobileTab('feed') }}
             weekStartsOn={weekStartsOn}
           />
 
@@ -672,7 +680,7 @@ export function Calendar() {
         </aside>
 
         {/* ── Right panel (Feed) ── */}
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg-base)' }}>
+        <main style={{ flex: 1, display: !isMobile || mobileTab === 'feed' ? 'flex' : 'none', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg-base)' }}>
 
           {/* Feed header */}
           <div style={{
@@ -787,6 +795,31 @@ export function Calendar() {
           )}
         </main>
       </div>
+
+      {/* ── Mobile bottom tab bar ── */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 52,
+          background: 'var(--bg-base)', borderTop: '1px solid var(--border-base)',
+          display: 'flex', zIndex: 100,
+        }}>
+          {[
+            { tab: 'calendar', label: '달력' },
+            { tab: 'feed', label: '오늘' },
+          ].map(({ tab, label }) => (
+            <button key={tab} onClick={() => setMobileTab(tab)}
+              style={{
+                flex: 1, border: 'none', background: 'transparent', cursor: 'pointer',
+                fontSize: 'var(--text-xs)', fontWeight: 700,
+                color: mobileTab === tab ? 'var(--accent)' : 'var(--text-muted)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
+                borderTop: mobileTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
+                transition: 'color var(--duration-fast)',
+              }}
+            >{label}</button>
+          ))}
+        </div>
+      )}
 
       {showProfile && profile && (
         <ProfileModal
