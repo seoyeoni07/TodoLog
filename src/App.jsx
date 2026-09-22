@@ -7,7 +7,7 @@ import { Calendar } from './pages/Calendar'
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter basename="/todolog">
+      <BrowserRouter basename="/TodoLog">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<PrivateRoute><Calendar /></PrivateRoute>} />
